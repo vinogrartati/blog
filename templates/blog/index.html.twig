@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blog{% endblock %}
+
+{% block body %}
+<h1>Blogs</h1>
+{% if blogs %}
+    <table id="articles" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Blog Title</th>
+            <th>ACTIONS</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for blog in blogs %}
+            <tr>
+                <td>{{ blog.title }}</td>
+                <td>
+                    <a href="/blog/{{ blog.urlName }}" class="btn btn-dark">Show</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No articles to display</p>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="../../public/js/main.js"></script>
+{% endblock %}

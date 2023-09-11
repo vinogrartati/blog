@@ -3,3 +3,18 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+#articles:
+#    path: blog/{blogId}/
+#    controller: App\Controller\ArticleController::class
+
+articles:
+    resource: '../src/Controller/ArticleController.php'
+       # path: ../src/Controller/ArticleController
+        #namespace: App\Controller
+    prefix:   blog/{blogName}/
+    type: annotation
+
+#index:
+#    path: /
+#    controller: App\Controller\ArticleController::index

@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block body %}
+<h1>{{ blog.title }}</h1>
+<p>{{ blog.about }}</p>
+<hr>
+<a href="/">Go Back</a>
+
+{% if articles %}
+    <table id="articles" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Article Title</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in articles %}
+            <tr>
+                <td>{{ article.title }}</td>
+                <td>
+                    <a href="/article/{{ article.id }}" class="btn btn-dark">Show</a>
+                    {% if app.user.id is same as (blog.ownerId) %}
+                    <a href="/article/edit/{{ article.id }}" class="btn btn-light">Edit</a>
+                        <a href="#" class="btn btn-danger delete-article" data-id="{{ article.id }}">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No articles to display</p>
+{% endif %}
+{% if blog.ownerId is same as (app.user.id) %}
+    <a href="/blog/{{ blog.urlName }}/article/new" class="btn btn-light">New Article</a>
+{% endif %}
+{% endblock %}

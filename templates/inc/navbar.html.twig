@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-3">
+    <div class="container">
+        <a href="/" class="navbar-brand">Blog</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mobile-nav">
+            <span class="navbar-toggle-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mobile-nav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">Home</a>
+                </li>
+                {% if app.user %}
+                    {% if false %}
+                        app.user.blog
+                        <li>
+                            <a href="/article/{{ app.user.blog }}/new" class="nav-link">New Article</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="/blog/new" class="nav-link">Create blog</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+                <li class="nav-item">
+                </li>
+            </ul>
+        </div>
+        <div>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a href="/{{ app.user ? 'logout' : 'login' }}" class="nav-link">
+                        {{ app.user ? 'Logout' : 'Login' }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

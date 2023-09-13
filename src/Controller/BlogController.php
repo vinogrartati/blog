@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\Blog;
 use App\Entity\User;
+use App\Form\BlogFormType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -40,15 +41,8 @@ class BlogController extends AbstractController {
 			return $this->redirectToRoute('app_login');
 		}
 
-		$form = $this->createFormBuilder($blog)
-			->add('title', TextType::class, ['attr' => ['class' => 'form-control']])
-			->add('urlName', TextType::class, ['attr' => ['class' => 'form-control']])
-			->add('about', TextareaType::class, ['required' => false, 'attr' => ['class' => 'form-control']])
-			->add('ownerId', HiddenType::class, ['required' => true, 'attr' => ['class' => 'form-control', 'value' => $user->getId()]])
-			->add('save', SubmitType::class, ['label' => 'Create', 'attr' => ['class' => 'btn btn-primary mt-3']])
-			->getForm()
-		;
-
+		$blog->setOwnerId($user->getId());
+		$form = $this->createForm(BlogFormType::class, $blog);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -64,18 +58,12 @@ class BlogController extends AbstractController {
 	}
 
 	/**
-	 * @Route("blog/edit/{id}", methods={"GET", "POST"}, name="edit_blog")
+	 * @Route("blog/{name}/edit/", methods={"GET", "POST"}, name="edit_blog")
 	 */
-	public function editBlog(Request $request, $id) {
-		$blog = $this->doctrine->getRepository(Blog::class)->find($id);
+	public function editBlog(Request $request, $name) {
+		$blog = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $name]);
 
-		$form = $this->createFormBuilder($blog)
-			 ->add('title', TextType::class, ['attr' => ['class' => 'form-control']])
-			 ->add('urlName', TextType::class, ['attr' => ['class' => 'form-control']])
-			 ->add('body', TextareaType::class, ['required' => false, 'attr' => ['class' => 'form-control']])
-			 ->add('save', SubmitType::class, ['label' => 'Update', 'attr' => ['class' => 'btn btn-primary mt-3']])
-			 ->getForm()
-		;
+		$form = $this->createForm(BlogFormType::class, $blog);
 
 		$form->handleRequest($request);
 
@@ -84,7 +72,7 @@ class BlogController extends AbstractController {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
-			return $this->redirectToRoute('blog_show');
+			return $this->redirectToRoute('blog_show', ['name' => $blog->getUrlName()]);
 		}
 
 		return $this->render('blog/edit.html.twig', ['form' => $form->createView()]);

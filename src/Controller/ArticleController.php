@@ -3,12 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\Blog;
+use App\Form\ArticleFormType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,11 +16,11 @@ class ArticleController extends AbstractController {
 
 	public function __construct(readonly ManagerRegistry $doctrine) {}
 	/**
-	 * @Route("/articles", methods={"GET"}, name="article_list") // todo-06.09.2023-vinogradova.tv почему тут блог???
+	 * @Route("/articles", methods={"GET"}, name="article_list")
 	 * @return Response
 	 */
 	public function index($blogName) {
-		$blog = $this->doctrine->getRepository(Article::class)->findOneBy(['urlName' => $blogName]);
+		$blog     = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $blogName]);
 		$articles = $this->doctrine->getRepository(Article::class)->findBy(['blogId' => $blog->getId()]);
 
 		return $this->render('articles/index.html.twig', ['articles' => $articles]);
@@ -32,17 +30,11 @@ class ArticleController extends AbstractController {
 	 * @Route("/article/new", methods={"GET", "POST"}, name="new_article")
 	 */
 	public function newArticle(Request $request, $blogName) {
-		$blog = $this->doctrine->getRepository(Article::class)->findOneBy(['url_name' => $blogName]);
+		$blog = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $blogName]);
 
 		$article = new Article();
-
-		$form = $this->createFormBuilder($article)
-			->add('blogId', HiddenType::class, ['attr' => ['class' => 'form-control', 'value' => $blog->getId()]])
-			->add('title', TextType::class,    ['attr' => ['class' => 'form-control']])
-			->add('body', TextareaType::class, ['required' => false, 'attr' => ['class' => 'form-control']])
-			->add('save', SubmitType::class,   ['label' => 'Create', 'attr' => ['class' => 'btn btn-primary mt-3']])
-			->getForm()
-		;
+		$article->setBlogId($blog->getId());
+		$form = $this->createForm(ArticleFormType::class, $article);
 
 		$form->handleRequest($request);
 
@@ -62,16 +54,10 @@ class ArticleController extends AbstractController {
 	/**
 	 * @Route("article/edit/{id}", methods={"GET", "POST"}, name="edit_article")
 	 */
-	public function editArticle(Request $request, $id) { // todo-08.09.2023-vinogradova.tv добавить блог
+	public function editArticle(Request $request, $id) {
 		$article = $this->doctrine->getRepository(Article::class)->find($id);
 
-		$form = $this->createFormBuilder($article)
-			 ->add('title', TextType::class, ['attr' => ['class' => 'form-control']])
-			 ->add('body', TextareaType::class, ['required' => false, 'attr' => ['class' => 'form-control']])
-			 ->add('save', SubmitType::class, ['label' => 'Update', 'attr' => ['class' => 'btn btn-primary mt-3']])
-			 ->getForm()
-		;
-
+		$form = $this->createForm(ArticleFormType::class, $article);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -79,16 +65,16 @@ class ArticleController extends AbstractController {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
-			return $this->redirectToRoute('article_list');
+			return $this->redirectToRoute('article_list', ['blogName' => $blogName]); // todo-14.09.2023-vinogradova.tv добавить
 		}
 
 		return $this->render('articles/edit.html.twig', ['form' => $form->createView()]);
 	}
 
 	/**
-	 * @Route("/article/delete/{id}", methods={"DELETE"})
+	 * @Route("/article/delete/{id}", methods={"DELETE"}, name="delete_article")
 	 */
-	public function deleteArticle(Request $request, $id) { // todo-08.09.2023-vinogradova.tv добавить блог
+	public function deleteArticle(Request $request, $id) {
 		$article = $this->doctrine->getRepository(Article::class)->find($id);
 
 		$entityManager = $this->doctrine->getManager();
@@ -98,28 +84,9 @@ class ArticleController extends AbstractController {
 		$response = new Response();
 		$response->send();
 	}
-	/**
-	 * @Route("/article/save", methods={"POST"}) // todo-08.09.2023-vinogradova.tv это неправильный сэйв!
-	 */
-	public function save($blogName) {
-		$blog = $this->doctrine->getRepository(Article::class)->findOneBy(['urlName' => $blogName]);
-
-		$entityManager = $this->doctrine->getManager();
-
-		$article = new Article();
-		$article->setTitle('Article Two');
-		$article->setBody('This is the body for article Two');
-		$article->setBlogId($blog->getId());
-
-		$entityManager->persist($article);
-
-		$entityManager->flush();
-
-		return new Response('Saved an article with the id of ' . $article->getId());
-	}
 
 	/**
-	 * @Route("/article/{id}", name="article_show")
+	 * @Route("/article/{id}", name="show_article")
 	 */
 	public function show($id) {
 		$article = $this->doctrine->getRepository(Article::class)->find($id);

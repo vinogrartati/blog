@@ -91,28 +91,13 @@ class BlogController extends AbstractController {
 		$response = new Response();
 		$response->send();
 	}
-//	/**
-//	 * @Route("/blog/save")
-//	 */
-//	public function save() {
-//		$entityManager = $this->doctrine->getManager();
-//
-//		$article = new Article();
-//		$article->setTitle('Article Two');
-//		$article->setBody('This is the body for article Two');
-//
-//		$entityManager->persist($article);
-//
-//		$entityManager->flush();
-//
-//		return new Response('Saved an article with the id of ' . $article->getId());
-//	}
 
 	/**
 	 * @Route("/blog/{name}", name="blog_show")
 	 */
 	public function show($name) {
 		$blog = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $name]);
+
 		if (null === $blog) {
 			throw new NotFoundHttpException('Блог не найден');
 		}

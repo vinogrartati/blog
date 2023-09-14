@@ -6,8 +6,6 @@
 <h1>{{ blog.title }}</h1>
 <p>{{ blog.about }}</p>
 <hr>
-<a href="/">Go Back</a>
-
 {% if articles %}
     <table id="articles" class="table table-striped">
         <thead>
@@ -21,10 +19,10 @@
             <tr>
                 <td>{{ article.title }}</td>
                 <td>
-                    <a href="/article/{{ article.id }}" class="btn btn-dark">Show</a>
+                    <a href="{{ path('show_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-dark" target="_blank">Show</a>
                     {% if app.user.id is same as (blog.ownerId) %}
-                    <a href="/article/edit/{{ article.id }}" class="btn btn-light">Edit</a>
-                        <a href="#" class="btn btn-danger delete-article" data-id="{{ article.id }}">Delete</a>
+                        <a href="{{ path('edit_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-light" target="_blank">Edit</a>
+                        <a href="{{ path('delete_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-danger delete-article" data-id="{{ article.id }}" target="_blank">Delete</a>
                     {% endif %}
                 </td>
             </tr>
@@ -35,6 +33,7 @@
     <p>No articles to display</p>
 {% endif %}
 {% if blog.ownerId is same as (app.user.id) %}
-    <a href="/blog/{{ blog.urlName }}/article/new" class="btn btn-light">New Article</a>
+    <a href="{{ path('new_article', {blogName: blog.urlName}) }}" class="btn btn-light" target="_blank">New Article</a>
 {% endif %}
+    <div><a href="/">Go Back</a></div>
 {% endblock %}

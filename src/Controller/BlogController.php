@@ -9,10 +9,6 @@ use App\Form\BlogFormType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -20,23 +16,31 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BlogController extends AbstractController {
 	public function __construct(readonly ManagerRegistry $doctrine, readonly Security $security) {}
+
 	/**
-	 * @Route("/", methods={"GET"}, name="blogs_list")
+	 * Получение списка блогов.
+	 *
 	 * @return Response
 	 */
-	public function index() {
+	#[Route(path: '/', name: 'blogs_list', methods: ['GET'])]
+	public function index(): Response {
 		$blogs = $this->doctrine->getRepository(Blog::class)->findAll();
 
 		return $this->render('blog/index.html.twig', ['blogs' => $blogs]);
 	}
 
 	/**
-	 * @Route("blog/new", methods={"GET", "POST"}, name="new_blog")
+	 * Создание блога.
+	 *
+	 * @param Request $request Запрос с формой
+	 *
+	 * @return Response
 	 */
-	public function newBlog(Request $request) {
+	#[Route(path: 'blog/new', name: 'new_blog', methods: ['GET', 'POST'])]
+	public function newBlog(Request $request): Response {
 		$blog = new Blog();
 
-		$user = $this->security->getUser(); /** @var User $user */ // todo-06.09.2023-vinogradova.tv насколько это правильно ?
+		$user = $this->security->getUser(); /** @var User $user */
 		if (null === $user) {
 			return $this->redirectToRoute('app_login');
 		}
@@ -58,9 +62,15 @@ class BlogController extends AbstractController {
 	}
 
 	/**
-	 * @Route("blog/{name}/edit/", methods={"GET", "POST"}, name="edit_blog")
+	 * Редактирование блога.
+	 *
+	 * @param Request $request  Запрос с формой
+	 * @param string  $name     Url-имя блога
+	 *
+	 * @return Response
 	 */
-	public function editBlog(Request $request, $name) {
+	#[Route(path: 'blog/{name}/edit/', name: 'edit_blog', methods: ['GET', 'POST'])]
+	public function editBlog(Request $request, string $name): Response {
 		$blog = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $name]);
 
 		$form = $this->createForm(BlogFormType::class, $blog);
@@ -79,10 +89,18 @@ class BlogController extends AbstractController {
 	}
 
 	/**
-	 * @Route("/blog/delete/{id}", methods={"DELETE"})
+	 * Удалить блог
+	 *
+	 * @param string $id Id блога
+	 *
+	 * @return void
 	 */
-	public function deleteBlog(Request $request, $id) {
-		$blog = $this->doctrine->getRepository(Blog::class)->find($id);
+	#[Route(path: 'blog/delete/{id}/', name: 'delete_blog', methods: ['DELETE'])]
+	public function deleteBlog(string $id): void { // todo-15.09.2023-vinogradova.tv надо доработать
+		$blog = $this->doctrine->getRepository(Blog::class)->find($id); /** @var Blog $blog */
+		if ($blog->getOwnerId() !== ($this->security->getUser())->getId()) {
+			return;
+		}
 
 		$entityManager = $this->doctrine->getManager();
 		$entityManager->remove($blog);
@@ -93,9 +111,14 @@ class BlogController extends AbstractController {
 	}
 
 	/**
-	 * @Route("/blog/{name}", name="blog_show")
+	 * Главная страница блога
+	 *
+	 * @param string $name Url-имя блога
+	 *
+	 * @return Response
 	 */
-	public function show($name) {
+	#[Route(path: 'blog/{name}', name: 'blog_show')]
+	public function show(string $name): Response {
 		$blog = $this->doctrine->getRepository(Blog::class)->findOneBy(['urlName' => $name]);
 
 		if (null === $blog) {

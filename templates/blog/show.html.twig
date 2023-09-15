@@ -22,7 +22,14 @@
                     <a href="{{ path('show_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-dark" target="_blank">Show</a>
                     {% if app.user.id is same as (blog.ownerId) %}
                         <a href="{{ path('edit_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-light" target="_blank">Edit</a>
-                        <a href="{{ path('delete_article', {blogName: blog.urlName, id: article.id}) }}" class="btn btn-danger delete-article" data-id="{{ article.id }}" target="_blank">Delete</a>
+                        <a href="{{ path('delete_article', {blogName: blog.urlName, id: article.id}) }}"class="btn btn-danger delete-article">Delete</a>
+                        <form action="{{ url('delete_article', {blogName: blog.urlName,  id: article.id}) }}" method="post" data-confirmation="true" id="delete-form">
+                            <input type="hidden" name="token" value="{{ csrf_token('delete') }}" />
+                            <button type="submit" class="btn btn-lg btn-block btn-danger">
+                                <i class="fa fa-trash" aria-hidden="true"></i>
+                                 Delete post
+                            </button>
+                        </form>
                     {% endif %}
                 </td>
             </tr>
